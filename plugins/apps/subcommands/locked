@@ -3,15 +3,18 @@ set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions"
 source "$PLUGIN_AVAILABLE_PATH/apps/internal-functions"
 
-apps_lock_cmd() {
-  declare desc="locks an app for deployment"
+apps_locked_cmd() {
+  declare desc="checks if an app is locked for deployment"
   declare cmd="apps:lock"
   [[ "$1" == "$cmd" ]] && shift 1
   declare APP="$1"; verify_app_name "$APP"
+  local LOCKED="$(apps_is_locked "$APP")"
 
-  touch "$DOKKU_ROOT/$APP/.deploy.lock" || dokku_log_fail "Unable to create deploy lock"
+  if [[ "$LOCKED" != "true" ]] ; then
+    dokku_log_fail_quiet "Deploy lock does not exist"
+  fi
 
-  dokku_log_info1 "Deploy lock created"
+  dokku_log_quiet "Deploy lock exists"
 }
 
-apps_lock_cmd "$@"
+apps_locked_cmd "$@"
