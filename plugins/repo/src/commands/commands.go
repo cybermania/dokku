@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dokku/dokku/plugins/common"
 	columnize "github.com/ryanuber/columnize"
 )
 
@@ -32,7 +33,15 @@ func main() {
 	case "repo", "repo:help":
 		usage()
 	case "help":
-		fmt.Print("\n    repo, Runs commands that interact with the app's repo\n")
+		command := common.NewShellCmd(fmt.Sprintf("ps -o command= %d", os.Getppid()))
+		command.ShowOutput = false
+		output, err := command.Output()
+
+		if err == nil && strings.Contains(string(output), "--all") {
+			fmt.Println(helpContent)
+		} else {
+			fmt.Print("\n    repo, Runs commands that interact with the app's repo\n")
+		}
 	default:
 		dokkuNotImplementExitCode, err := strconv.Atoi(os.Getenv("DOKKU_NOT_IMPLEMENTED_EXIT"))
 		if err != nil {

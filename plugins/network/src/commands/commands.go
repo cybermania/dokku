@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dokku/dokku/plugins/common"
 	columnize "github.com/ryanuber/columnize"
 )
 
@@ -34,7 +35,15 @@ func main() {
 	case "network", "network:help":
 		usage()
 	case "help":
-		fmt.Print("\n    network, Manages network settings for an app\n")
+		command := common.NewShellCmd(fmt.Sprintf("ps -o command= %d", os.Getppid()))
+		command.ShowOutput = false
+		output, err := command.Output()
+
+		if err == nil && strings.Contains(string(output), "--all") {
+			fmt.Println(helpContent)
+		} else {
+			fmt.Print("\n    network, Manages network settings for an app\n")
+		}
 	default:
 		dokkuNotImplementExitCode, err := strconv.Atoi(os.Getenv("DOKKU_NOT_IMPLEMENTED_EXIT"))
 		if err != nil {

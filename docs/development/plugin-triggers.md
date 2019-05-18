@@ -248,6 +248,8 @@ echo 'derp.dkr.ecr.us-east-1.amazonaws.com'
 
 ### `docker-args-build`
 
+> Warning: Deprecated, please use `docker-args-process-build` instead
+
 - Description:
 - Invoked by: `internal function dokku_build() (build phase)`
 - Arguments: `$APP $IMAGE_SOURCE_TYPE`
@@ -271,6 +273,8 @@ echo -n "$STDIN$output"
 
 ### `docker-args-deploy`
 
+> Warning: Deprecated, please use `docker-args-process-deploy` instead
+
 - Description:
 - Invoked by: `dokku deploy`
 - Arguments: `$APP $IMAGE_TAG [$PROC_TYPE $CONTAINER_INDEX]`
@@ -289,9 +293,65 @@ verify_app_name "$APP"
 
 ### `docker-args-run`
 
+> Warning: Deprecated, please use `docker-args-process-run` instead
+
 - Description:
 - Invoked by: `dokku run`
 - Arguments: `$APP $IMAGE_TAG`
+- Example:
+
+```shell
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions"
+APP="$1"; IMAGE_TAG="$2"; IMAGE=$(get_app_image_name $APP $IMAGE_TAG)
+verify_app_name "$APP"
+
+# TODO
+```
+
+### `docker-args-process-build`
+
+- Description: `$PROC_TYPE` may be set to magic `_all_` process type to signify global docker deploy options.
+- Invoked by: `dokku ps:rebuild`
+- Arguments: `$APP $IMAGE_TAG $IMAGE_SOURCE_TYPE`
+- Example:
+
+```shell
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions"
+APP="$1"; IMAGE_TAG="$2"; IMAGE=$(get_app_image_name $APP $IMAGE_TAG)
+verify_app_name "$APP"
+
+# TODO
+```
+
+### `docker-args-process-deploy`
+
+- Description: `$PROC_TYPE` may be set to magic `_all_` process type to signify global docker deploy options.
+- Invoked by: `dokku deploy`
+- Arguments: `$APP $IMAGE_TAG $IMAGE_SOURCE_TYPE [$PROC_TYPE $CONTAINER_INDEX]`
+- Example:
+
+```shell
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions"
+APP="$1"; IMAGE_TAG="$2"; IMAGE=$(get_app_image_name $APP $IMAGE_TAG)
+verify_app_name "$APP"
+
+# TODO
+```
+
+### `docker-args-process-run`
+
+- Description: `$PROC_TYPE` may be set to magic `_all_` process type to signify global docker run options.
+- Invoked by: `dokku run`
+- Arguments: `$APP $IMAGE_TAG $IMAGE_SOURCE_TYPE`
 - Example:
 
 ```shell
@@ -338,6 +398,21 @@ set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 > Warning: The `git-pre-pull` trigger should _not_ be used for authentication
 since it does not get called for commands that use `git-upload-archive` such
 as `git archive`. Instead, use the [`user-auth`](#user-auth) trigger.
+
+### `git-revision`
+
+- Description: Allows you to fetch the current git revision for a given application
+- Invoked by:
+- Arguments: `$APP`
+- Example:
+
+```shell
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+# TODO
+```
 
 ### `install`
 
@@ -529,6 +604,8 @@ echo "$NEW_SUBDOMAIN.$VHOST"
 
 ### `nginx-pre-reload`
 
+> Warning: The arguments INTERNAL_PORT and INTERNAL_IP_ADDRESS are no longer sufficient to retrieve all app listeners. Please run `plugn trigger network-get-listeners APP` within any implementation of `nginx-pre-reload` in order to retrieve all application listeners.
+
 - Description: Run before nginx reloads hosts
 - Invoked by: `dokku nginx:build-config`
 - Arguments: `$APP $INTERNAL_PORT $INTERNAL_IP_ADDRESS`
@@ -547,6 +624,21 @@ nginx -t
 ### `post-app-clone`
 
 - Description: Allows you to run commands after an app was cloned.
+- Invoked by: `dokku apps:clone`
+- Arguments: `$OLD_APP_NAME $NEW_APP_NAME`
+- Example:
+
+```shell
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+# TODO
+```
+
+### `post-app-clone-setup`
+
+- Description: Allows you to run commands after an app is setup, and before it is rebuild. This is useful for cleaning up tasks, or ensuring configuration from an old app is copied to the new app
 - Invoked by: `dokku apps:clone`
 - Arguments: `$OLD_APP_NAME $NEW_APP_NAME`
 - Example:
@@ -745,7 +837,7 @@ APP="$1"; verify_app_name "$APP"
 TMP_WORK_DIR="$2"
 REV="$3" # optional, may not be sent for tar-based builds
 
-pushd "$TMP_WORK_DIR" > /dev/null
+pushd "$TMP_WORK_DIR" >/dev/null
 touch Procfile
 echo "clock: some-command" >> Procfile
 ```
@@ -789,12 +881,12 @@ verify_app_name "$APP"
 dokku_log_info1 "Installing $CONTAINER_PACKAGE..."
 
 CMD="cat > gm && \
-  dpkg -s CONTAINER_PACKAGE > /dev/null 2>&1 || \
+  dpkg -s CONTAINER_PACKAGE >/dev/null 2>&1 || \
   (apt-get update && apt-get install -y CONTAINER_PACKAGE && apt-get clean)"
 
 ID=$(docker run $DOKKU_GLOBAL_RUN_ARGS -i -a stdin $IMAGE /bin/bash -c "$CMD")
 test $(docker wait $ID) -eq 0
-docker commit $ID $IMAGE > /dev/null
+docker commit $ID $IMAGE >/dev/null
 ```
 
 ### `post-release-dockerfile`
@@ -904,7 +996,7 @@ verify_app_name "$APP"
 dokku_log_info1 "Running gulp"
 id=$(docker run $DOKKU_GLOBAL_RUN_ARGS -d $IMAGE /bin/bash -c "cd /app && gulp default")
 test $(docker wait $id) -eq 0
-docker commit $id $IMAGE > /dev/null
+docker commit $id $IMAGE >/dev/null
 dokku_log_info1 "Building UI Complete"
 ```
 
@@ -980,12 +1072,12 @@ verify_app_name "$APP"
 dokku_log_info1 "Installing GraphicsMagick..."
 
 CMD="cat > gm && \
-  dpkg -s graphicsmagick > /dev/null 2>&1 || \
+  dpkg -s graphicsmagick >/dev/null 2>&1 || \
   (apt-get update && apt-get install -y graphicsmagick && apt-get clean)"
 
 ID=$(docker run $DOKKU_GLOBAL_RUN_ARGS -i -a stdin $IMAGE /bin/bash -c "$CMD")
 test $(docker wait $ID) -eq 0
-docker commit $ID $IMAGE > /dev/null
+docker commit $ID $IMAGE >/dev/null
 ```
 
 ### `pre-release-dockerfile`
@@ -1137,9 +1229,25 @@ APP=${refname/*\//}.$reference_app
 
 if [[ ! -d "$DOKKU_ROOT/$APP" ]]; then
   REFERENCE_REPO="$DOKKU_ROOT/$reference_app"
-  git clone --bare --shared --reference "$REFERENCE_REPO" "$REFERENCE_REPO" "$DOKKU_ROOT/$APP" > /dev/null
+  git clone --bare --shared --reference "$REFERENCE_REPO" "$REFERENCE_REPO" "$DOKKU_ROOT/$APP" >/dev/null
 fi
 plugn trigger receive-app $APP $newrev
+```
+
+### `resource-get-property`
+
+- Description: Fetches a given resource property value
+- Invoked by:
+- Arguments: `$APP` `$PROC_TYPE` `$RESOURCE_TYPE` `$PROPERTY`
+- Example:
+
+```shell
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+APP="$1"; PROC_TYPE="$2" RESOURCE_TYPE="$3" PROPERTY="$4"
+
+# TODO
 ```
 
 ### `retire-container-failed`
@@ -1232,6 +1340,43 @@ DOKKU_SCHEDULER="$1"; APP="$2";
 # TODO
 ```
 
+### `scheduler-is-deployed`
+
+> Warning: The scheduler plugin trigger apis are under development and may change
+> between minor releases until the 1.0 release.
+
+- Description: Allows you to check if an app has been deployed
+- Invoked by: `dokku ps:rebuild`
+- Arguments: `$DOKKU_SCHEDULER $APP`
+- Example:
+
+```shell
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+DOKKU_SCHEDULER="$1"; APP="$2";
+
+# TODO
+```
+### `scheduler-logs`
+
+> Warning: The scheduler plugin trigger apis are under development and may change
+> between minor releases until the 1.0 release.
+
+- Description: Allows you to run scheduler commands when retrieving container logs
+- Invoked by: `dokku logs:failed`
+- Arguments: `$DOKKU_SCHEDULER $APP $PROCESS_TYPE $TAIL $PRETTY_PRINT $NUM`
+- Example:
+
+```shell
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+DOKKU_SCHEDULER="$1"; APP="$2"; PROCESS_TYPE="$3"; TAIL="$4"; PRETTY_PRINT="$5"; NUM="$6"
+
+# TODO
+```
+
 ### `scheduler-logs-failed`
 
 > Warning: The scheduler plugin trigger apis are under development and may change
@@ -1246,7 +1391,26 @@ DOKKU_SCHEDULER="$1"; APP="$2";
 #!/usr/bin/env bash
 
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
-DOKKU_SCHEDULER="$1"; APP="$2"; ARGS="${@:3}";
+DOKKU_SCHEDULER="$1"; APP="$2";
+
+# TODO
+```
+
+### `scheduler-retire`
+
+> Warning: The scheduler plugin trigger apis are under development and may change
+> between minor releases until the 1.0 release.
+
+- Description: Allows you to run scheduler commands when containers should be force retired from the system
+- Invoked by: `dokku run`
+- Arguments: `$DOKKU_SCHEDULER`
+- Example:
+
+```shell
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+DOKKU_SCHEDULER="$1";
 
 # TODO
 ```

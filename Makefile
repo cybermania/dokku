@@ -1,8 +1,10 @@
 DOKKU_VERSION ?= master
 
+PROCFILE_VERSION ?= 0.6.0
+PLUGN_VERSION ?= 0.3.2
 SSHCOMMAND_URL ?= https://raw.githubusercontent.com/dokku/sshcommand/v0.7.0/sshcommand
-PROCFILE_UTIL_URL ?= https://github.com/josegonzalez/go-procfile-util/releases/download/v0.4.0/procfile-util_0.4.0_linux_x86_64.tgz
-PLUGN_URL ?= https://github.com/dokku/plugn/releases/download/v0.3.0/plugn_0.3.0_linux_x86_64.tgz
+PROCFILE_UTIL_URL ?= https://github.com/josegonzalez/go-procfile-util/releases/download/v${PROCFILE_VERSION}/procfile-util_${PROCFILE_VERSION}_linux_x86_64.tgz
+PLUGN_URL ?= https://github.com/dokku/plugn/releases/download/v${PLUGN_VERSION}/plugn_${PLUGN_VERSION}_linux_x86_64.tgz
 SIGIL_URL ?= https://github.com/gliderlabs/sigil/releases/download/v0.4.0/sigil_0.4.0_Linux_x86_64.tgz
 STACK_URL ?= https://github.com/gliderlabs/herokuish.git
 PREBUILT_STACK_URL ?= gliderlabs/herokuish:latest
@@ -30,6 +32,7 @@ include common.mk
 .PHONY: all apt-update install version copyfiles copyplugin man-db plugins dependencies sshcommand procfile-util plugn docker aufs stack count dokku-installer vagrant-acl-add vagrant-dokku go-build
 
 include tests.mk
+include package.mk
 include deb.mk
 include rpm.mk
 include arch.mk
@@ -105,7 +108,7 @@ addman: help2man man-db
 
 version:
 ifeq ($(DOKKU_VERSION),master)
-	git describe --tags > ~dokku/VERSION  2> /dev/null || echo '~${DOKKU_VERSION} ($(shell date -uIminutes))' > ~dokku/VERSION
+	git describe --tags > ~dokku/VERSION  2>/dev/null || echo '~${DOKKU_VERSION} ($(shell date -uIminutes))' > ~dokku/VERSION
 else
 	echo $(DOKKU_VERSION) > ~dokku/VERSION
 endif

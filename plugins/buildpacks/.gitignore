@@ -1,0 +1,7 @@
+/commands
+/subcommands/*
+/triggers/*
+/install
+/post-delete
+/post-extract
+/report

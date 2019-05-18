@@ -6,11 +6,12 @@
 domains:add <app> <domain> [<domain> ...]      # Add domains to app
 domains:add-global <domain> [<domain> ...]     # Add global domain names
 domains:clear <app>                            # Clear all domains for app
+domains:clear-global                           # Clear global domain names
 domains:disable <app>                          # Disable VHOST support
 domains:enable <app>                           # Enable VHOST support
 domains:remove <app> <domain> [<domain> ...]   # Remove domains from app
 domains:remove-global <domain> [<domain> ...]  # Remove global domain names
-domains:report [<app>] [<flag>]                # Displays a domains report for one or more apps
+domains:report [<app>|--global] [<flag>]       # Displays a domains report for one or more apps
 domains:set <app> <domain> [<domain> ...]      # Set domains for app
 domains:set-global <domain> [<domain> ...]     # Set global domain names
 ```
@@ -75,7 +76,7 @@ dokku domains:remove node-js-app dokku.me
 dokku domains:set node-js-app dokku.me dokku.org
 ```
 
-## Displaying domains reports about an app
+## Displaying domains reports for an app
 
 > New as of 0.8.1
 
@@ -88,17 +89,17 @@ dokku domains:report
 ```
 =====> node-js-app domains information
        Domains app enabled: true
-       Domains app vhosts:  ruby-sample.dokku.org
+       Domains app vhosts:  node-js-app.dokku.org
        Domains global enabled: true
        Domains global vhosts: dokku.org
-=====> python-sample domains information
+=====> python-app domains information
        Domains app enabled: true
-       Domains app vhosts:  ruby-sample.dokku.org
+       Domains app vhosts:  python-app.dokku.org
        Domains global enabled: true
        Domains global vhosts: dokku.org
-=====> ruby-sample domains information
+=====> ruby-app domains information
        Domains app enabled: true
-       Domains app vhosts:  ruby-sample.dokku.org
+       Domains app vhosts:  ruby-app.dokku.org
        Domains global enabled: true
        Domains global vhosts: dokku.org
 ```

@@ -32,8 +32,8 @@ assert_error_log() {
 @test "(nginx-vhosts) nginx (no server tokens)" {
   deploy_app
   run /bin/bash -c "curl -s -D - $(dokku url $TEST_APP) -o /dev/null | egrep '^Server' | egrep '[0-9]+'"
-  echo "output: "$output
-  echo "status: "$status
+  echo "output: $output"
+  echo "status: $status"
   assert_failure
 }
 
@@ -43,7 +43,7 @@ assert_error_log() {
   assert_error_log ${TEST_APP}
 }
 
-@test "(nginx-vhosts) nginx:build-config (with SSL & unrelated domain)" {
+@test "(nginx-vhosts) nginx:build-config (with SSL and unrelated domain)" {
   setup_test_tls
   add_domain "node-js-app.dokku.me"
   add_domain "test.dokku.me"
@@ -62,7 +62,7 @@ assert_error_log() {
   assert_ssl_domain "wildcard2.dokku.me"
 }
 
-@test "(nginx-vhosts) nginx:build-config (wildcard SSL & unrelated domain)" {
+@test "(nginx-vhosts) nginx:build-config (wildcard SSL and unrelated domain)" {
   destroy_app
   TEST_APP="${TEST_APP}.example.com"
   setup_test_tls wildcard
@@ -82,7 +82,7 @@ assert_error_log() {
   assert_ssl_domain "www.test.app.dokku.me"
 }
 
-@test "(nginx-vhosts) nginx:build-config (wildcard SSL & custom nginx template)" {
+@test "(nginx-vhosts) nginx:build-config (wildcard SSL and custom nginx template)" {
   setup_test_tls wildcard
   add_domain "wildcard1.dokku.me"
   add_domain "wildcard2.dokku.me"
@@ -102,7 +102,54 @@ assert_error_log() {
 
 @test "(nginx-vhosts) nginx:build-config (failed validate_nginx)" {
   run deploy_app nodejs-express dokku@dokku.me:$TEST_APP bad_custom_nginx_template
-  echo "output: "$output
-  echo "status: "$status
+  echo "output: $output"
+  echo "status: $status"
   assert_failure
+}
+
+@test "(nginx-vhosts) nginx:validate" {
+  deploy_app
+  run /bin/bash -c "dokku nginx:validate"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run /bin/bash -c "dokku nginx:validate $TEST_APP"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  echo "invalid config" > "/home/dokku/${TEST_APP}/nginx.conf"
+
+  run /bin/bash -c "dokku nginx:validate"
+  echo "output: $output"
+  echo "status: $status"
+  assert_failure
+
+  run /bin/bash -c "dokku nginx:validate $TEST_APP"
+  echo "output: $output"
+  echo "status: $status"
+  assert_failure
+
+  run /bin/bash -c "dokku nginx:validate --clean"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run /bin/bash -c "dokku nginx:validate"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  echo "invalid config" > "/home/dokku/${TEST_APP}/nginx.conf"
+
+  run /bin/bash -c "dokku nginx:validate $TEST_APP --clean"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run /bin/bash -c "dokku nginx:validate"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
 }

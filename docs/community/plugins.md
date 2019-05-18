@@ -57,6 +57,7 @@ The following plugins are available and provided by Dokku maintainers. Where not
 [Aluxian]: https://github.com/Aluxian
 [Aomitayo]: https://github.com/Aomitayo
 [apmorton]: https://github.com/apmorton
+[artofrawr]: https://github.com/artofrawr
 [basgys]: https://github.com/basgys
 [Benjamin-Dobell]: https://github.com/Benjamin-Dobell
 [blag]: https://github.com/blag
@@ -126,6 +127,8 @@ The following plugins are available and provided by Dokku maintainers. Where not
 [Zenedith]: https://github.com/Zenedith
 [fteychene]: https://github.com/fteychene
 [sarendsen]: https://github.com/sarendsen
+[baikunz]: https://github.com/baikunz
+[lazyatom]: https://github.com/lazyatom
 
 ### Datastores
 
@@ -165,6 +168,7 @@ The following plugins are available and provided by Dokku maintainers. Where not
 | [FakeSNS](https://github.com/cu12/dokku-fake_sns)                                                 | [cu12][]              | 0.5.0+                |
 | [InfluxDB](https://github.com/basgys/dokku-influxdb)                                              | [basgys][]            | 0.4.x                 |
 | [RethinkDB](https://github.com/stuartpb/dokku-rethinkdb-plugin)                                   | [stuartpb][]          | 0.3.x                 |
+| [Headless Chrome](https://github.com/lazyatom/dokku-chrome)                                       | [lazyatom][]          | 0.8.1+                |
 
 [dccee02]: https://github.com/jeffutter/dokku-riakcs-plugin/commit/dccee02702e7001851917b7814e78a99148fb709
 [c77cbf1]: https://github.com/dokku/dokku/commit/c77cbf1d3ae07f0eafb85082ed7edcae9e836147
@@ -194,6 +198,7 @@ The following plugins are available and provided by Dokku maintainers. Where not
 | [SSH Deployment Keys](https://github.com/cedricziel/dokku-deployment-keys)<sup>3</sup>            | [cedricziel][]        | 0.4.0+                |
 | [SSH Hostkeys](https://github.com/cedricziel/dokku-hostkeys-plugin)<sup>4</sup>                   | [cedricziel][]        | 0.3.x                 |
 | [Application build hook](https://github.com/fteychene/dokku-build-hook)                           | [fteychene][]         | 0.4.0+                 |
+| [Post Deploy Script](https://github.com/baikunz/dokku-post-deploy-script)                         | [baikunz][]           | 0.4.0+                 |
 
 [217d00a]: https://github.com/dokku/dokku/commit/217d00a1bc47a7e24d8847617bb08a1633025fc7
 
@@ -225,6 +230,7 @@ The following plugins are available and provided by Dokku maintainers. Where not
 | [Long Timeout](https://github.com/investtools/dokku-long-timeout-plugin)                          | [investtools][]       | 0.4.0+                |
 | [Monit](https://github.com/cjblomqvist/dokku-monit)                                               | [cjblomqvist][]       | 0.3.x                 |
 | [Monorepo](https://github.com/iamale/dokku-monorepo)                                              | [iamale][]            | 0.4.0+                |
+| [Multi Dockerfile](https://github.com/artofrawr/dokku-multi-dockerfile)                           | [artofrawr][]         | 0.4.0+                |
 | [Node](https://github.com/ademuk/dokku-nodejs)                                                    | [ademuk][]            | 0.3.x                 |
 | [Node](https://github.com/pnegahdar/dokku-node)                                                   | [pnegahdar][]         | 0.3.x                 |
 | [Rollbar](https://github.com/iloveitaly/dokku-rollbar)                                            | [iloveitaly][]        | 0.5.0+                |

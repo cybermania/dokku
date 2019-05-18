@@ -3,8 +3,11 @@
 .git
 .vagrant
 contrib
+build
 docs
 tests
 !contrib/dokku-installer.py
 !contrib/dokku-update
 !contrib/bash-completion
+!contrib/docker
+vendor

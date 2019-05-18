@@ -9,8 +9,9 @@ PLUGIN_ENABLED_PATH=${PLUGIN_ENABLED_PATH:="$PLUGIN_PATH/enabled"}
 PLUGIN_CORE_PATH=${PLUGIN_CORE_PATH:="$DOKKU_LIB_ROOT/core-plugins"}
 PLUGIN_CORE_AVAILABLE_PATH=${PLUGIN_CORE_AVAILABLE_PATH:="$PLUGIN_CORE_PATH/available"}
 CUSTOM_TEMPLATE_SSL_DOMAIN=customssltemplate.dokku.me
-UUID=$(tr -dc 'a-z0-9' < /dev/urandom | fold -w 32 | head -n 1)
+UUID=$(tr -dc 'a-z0-9' </dev/urandom | fold -w 32 | head -n 1)
 TEST_APP="rdmtestapp-${UUID}"
+TEST_NETWORK="test-network-${UUID}"
 SKIPPED_TEST_ERR_MSG="previous test failed! skipping remaining tests..."
 
 # global setup() and teardown()
@@ -25,8 +26,11 @@ global_teardown() {
 
 # test functions
 flunk() {
-  { if [[ "$#" -eq 0 ]]; then cat -
-    else echo "$*"
+  {
+    if [[ "$#" -eq 0 ]]; then
+      cat -
+    else
+      echo "$*"
     fi
   }
   return 1
@@ -53,7 +57,8 @@ assert_failure() {
 
 assert_equal() {
   if [[ "$1" != "$2" ]]; then
-    { echo "expected: $1"
+    {
+      echo "expected: $1"
       echo "actual:   $2"
     } | flunk
   fi
@@ -79,8 +84,17 @@ assert_output_exists() {
 
 # ShellCheck doesn't know about $output from Bats
 # shellcheck disable=SC2154
+assert_output_not_exists() {
+  [[ -z "$output" ]] || flunk "expected no output, found some"
+}
+
+# ShellCheck doesn't know about $output from Bats
+# shellcheck disable=SC2154
 assert_output_contains() {
-  local input="$output"; local expected="$1"; local count="${2:-1}"; local found=0
+  local input="$output"
+  local expected="$1"
+  local count="${2:-1}"
+  local found=0
   until [ "${input/$expected/}" = "$input" ]; do
     input="${input/$expected/}"
     let found+=1
@@ -96,7 +110,7 @@ assert_line() {
   else
     local line
     for line in "${lines[@]}"; do
-      [[ "$line" = "$1" ]] && return 0
+      [[ "$line" == "$1" ]] && return 0
     done
     flunk "expected line \`$1'"
   fi
@@ -111,7 +125,7 @@ refute_line() {
   else
     local line
     for line in "${lines[@]}"; do
-      if [[ "$line" = "$1" ]]; then
+      if [[ "$line" == "$1" ]]; then
         flunk "expected to not find line \`$line'"
       fi
     done
@@ -130,24 +144,26 @@ assert_exit_status() {
 
 # dokku functions
 create_app() {
-  local APP="$1"; local TEST_APP=${APP:=$TEST_APP}
+  local APP="$1"
+  local TEST_APP=${APP:=$TEST_APP}
   dokku apps:create "$TEST_APP"
 }
 
-
 create_key() {
-  ssh-keygen -P "" -f /tmp/testkey &> /dev/null
+  ssh-keygen -P "" -f /tmp/testkey &>/dev/null
 }
 
 destroy_app() {
-  local RC="$1"; local RC=${RC:=0}
-  local APP="$2"; local TEST_APP=${APP:=$TEST_APP}
+  local RC="$1"
+  local RC=${RC:=0}
+  local APP="$2"
+  local TEST_APP=${APP:=$TEST_APP}
   dokku --force apps:destroy "$TEST_APP"
   return "$RC"
 }
 
 destroy_key() {
-  rm -f /tmp/testkey* &> /dev/null || true
+  rm -f /tmp/testkey* &>/dev/null || true
 }
 
 add_domain() {
@@ -157,7 +173,7 @@ add_domain() {
 # shellcheck disable=SC2119
 check_urls() {
   local PATTERN="$1"
-  run bash -c "dokku --quiet urls $TEST_APP | egrep \"${1}\""
+  run /bin/bash -c "dokku --quiet urls $TEST_APP | egrep \"${1}\""
   echo "output: $output"
   echo "status: $status"
   assert_success
@@ -186,7 +202,7 @@ assert_nonssl_domain() {
 
 assert_app_domain() {
   local domain=$1
-  run /bin/bash -c "dokku domains $TEST_APP 2> /dev/null | grep -xF ${domain}"
+  run /bin/bash -c "dokku domains $TEST_APP 2>/dev/null | grep -xF ${domain}"
   echo "output: $output"
   echo "status: $status"
   assert_output "${domain}"
@@ -208,13 +224,13 @@ deploy_app() {
   local GIT_REMOTE_BRANCH=${GIT_REMOTE_BRANCH:="master"}
   local TMP=$(mktemp -d "/tmp/dokku.me.XXXXX")
 
-  rmdir "$TMP" && cp -r "./tests/apps/$APP_TYPE" "$TMP"
+  rmdir "$TMP" && cp -r "${BATS_TEST_DIRNAME}/../../tests/apps/$APP_TYPE" "$TMP"
 
   # shellcheck disable=SC2086
   [[ -n "$CUSTOM_TEMPLATE" ]] && $CUSTOM_TEMPLATE $TEST_APP $TMP/$CUSTOM_PATH
 
-  pushd "$TMP" &> /dev/null || exit 1
-  trap 'popd &> /dev/null || true; rm -rf "$TMP"' RETURN INT TERM
+  pushd "$TMP" &>/dev/null || exit 1
+  trap 'popd &>/dev/null || true; rm -rf "$TMP"' RETURN INT TERM
 
   git init
   git config user.email "robot@example.com"
@@ -230,7 +246,7 @@ deploy_app() {
 
 setup_client_repo() {
   local TMP=$(mktemp -d "/tmp/dokku.me.XXXXX")
-  rmdir "$TMP" && cp -r ./tests/apps/nodejs-express "$TMP"
+  rmdir "$TMP" && cp -r "${BATS_TEST_DIRNAME}/../../tests/apps/nodejs-express" "$TMP"
   cd "$TMP" || exit 1
   git init
   git config user.email "robot@example.com"
@@ -242,7 +258,8 @@ setup_client_repo() {
 }
 
 setup_test_tls() {
-  local TLS_TYPE="$1"; local TLS="/home/dokku/$TEST_APP/tls"
+  local TLS_TYPE="$1"
+  local TLS="/home/dokku/$TEST_APP/tls"
   mkdir -p "$TLS"
 
   case "$TLS_TYPE" in
@@ -261,12 +278,13 @@ setup_test_tls() {
 }
 
 custom_ssl_nginx_template() {
-  local APP="$1"; local APP_REPO_DIR="$2"
+  local APP="$1"
+  local APP_REPO_DIR="$2"
   [[ -z "$APP" ]] && local APP="$TEST_APP"
   mkdir -p "$APP_REPO_DIR"
 
   echo "injecting custom_ssl_nginx_template -> $APP_REPO_DIR/nginx.conf.sigil"
-cat<<EOF > "$APP_REPO_DIR/nginx.conf.sigil"
+  cat <<EOF >"$APP_REPO_DIR/nginx.conf.sigil"
 {{ range \$port_map := .PROXY_PORT_MAP | split " " }}
 {{ \$port_map_list := \$port_map | split ":" }}
 {{ \$scheme := index \$port_map_list 0 }}
@@ -315,16 +333,17 @@ upstream {{ $.APP }}-{{ \$upstream_port }} {
 }
 {{ end }}{{ end }}
 EOF
-cat "$APP_REPO_DIR/nginx.conf.sigil"
+  cat "$APP_REPO_DIR/nginx.conf.sigil"
 }
 
 custom_nginx_template() {
-  local APP="$1"; local APP_REPO_DIR="$2"
+  local APP="$1"
+  local APP_REPO_DIR="$2"
   [[ -z "$APP" ]] && local APP="$TEST_APP"
   mkdir -p "$APP_REPO_DIR"
 
   echo "injecting custom_nginx_template -> $APP_REPO_DIR/nginx.conf.sigil"
-cat<<EOF > "$APP_REPO_DIR/nginx.conf.sigil"
+  cat <<EOF >"$APP_REPO_DIR/nginx.conf.sigil"
 {{ range \$port_map := .PROXY_PORT_MAP | split " " }}
 {{ \$port_map_list := \$port_map | split ":" }}
 {{ \$scheme := index \$port_map_list 0 }}
@@ -361,14 +380,15 @@ upstream {{ $.APP }}-{{ \$upstream_port }} {
 }
 {{ end }}{{ end }}
 EOF
-cat "$APP_REPO_DIR/nginx.conf.sigil"
+  cat "$APP_REPO_DIR/nginx.conf.sigil"
 }
 
 bad_custom_nginx_template() {
-  local APP="$1"; local APP_REPO_DIR="$2"
+  local APP="$1"
+  local APP_REPO_DIR="$2"
   [[ -z "$APP" ]] && local APP="$TEST_APP"
   echo "injecting bad_custom_nginx_template -> $APP_REPO_DIR/nginx.conf.sigil"
-cat<<EOF > "$APP_REPO_DIR/nginx.conf.sigil"
+  cat <<EOF >"$APP_REPO_DIR/nginx.conf.sigil"
 some lame nginx config
 EOF
 }
@@ -377,4 +397,46 @@ build_nginx_config() {
   # simulate nginx post-deploy
   dokku domains:setup "$TEST_APP"
   dokku nginx:build-config "$TEST_APP"
+}
+
+create_network() {
+  local NETWORK_NAME="$1:=$TEST_NETWORK"
+
+  NETWORK=$(docker network ls -q -f name="$NETWORK_NAME")
+  [[ -z "$NETWORK" ]] && docker network create "$NETWORK_NAME"
+}
+
+attach_network() {
+  local NETWORK_NAME="$1:=$TEST_NETWORK"
+
+  NETWORK=$(docker network ls -q -f name="$NETWORK_NAME")
+  [[ -n "$NETWORK" ]] && docker network connect "$NETWORK_NAME" "${TEST_APP}.web.1"
+}
+
+create_attach_network() {
+  local NETWORK_NAME="$1:=$TEST_NETWORK"
+
+  create_network "$NETWORK_NAME"
+  attach_network "$NETWORK_NAME"
+}
+
+delete_network() {
+  local NETWORK_NAME="$1:=$TEST_NETWORK"
+
+  NETWORK=$(docker network ls -q -f name="$NETWORK_NAME")
+  [[ -n "$NETWORK" ]] && docker network rm "$NETWORK_NAME"
+}
+
+detach_network() {
+  local NETWORK_NAME="$1:=$TEST_NETWORK"
+
+  NETWORK=$(docker network ls -q -f name="$NETWORK_NAME")
+  [[ -z "$NETWORK" ]] && docker network disconnect "$NETWORK_NAME" "${TEST_APP}.web.1"
+}
+
+detach_delete_network() {
+  local NETWORK_NAME="$1:=$TEST_NETWORK"
+
+  detach_network "$NETWORK_NAME"
+  delete_network "$NETWORK_NAME"
 }

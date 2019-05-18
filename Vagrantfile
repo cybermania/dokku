@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-BOX_NAME = ENV["BOX_NAME"] || "bento/ubuntu-14.04"
+BOX_NAME = ENV["BOX_NAME"] || "bento/ubuntu-18.04"
 BOX_CPUS = ENV["BOX_CPUS"] || "1"
 BOX_MEMORY = ENV["BOX_MEMORY"] || "1024"
 DOKKU_DOMAIN = ENV["DOKKU_DOMAIN"] || "dokku.me"
@@ -33,6 +33,10 @@ Vagrant::configure("2") do |config|
     v.vmx["memsize"] = BOX_MEMORY
   end
 
+  config.vm.provider :vmware_desktop do |v, override|
+    v.vmx["memsize"] = BOX_MEMORY
+  end
+
   config.vm.define "empty", autostart: false
 
   config.vm.define "dokku", primary: true do |vm|
@@ -49,7 +53,7 @@ Vagrant::configure("2") do |config|
       vb.customize ["modifyvm", :id, "--cableconnected1", "on"]
     end
 
-    vm.vm.provision :shell, :inline => "export DEBIAN_FRONTEND=noninteractive && apt-get update > /dev/null && apt-get -qq -y install git > /dev/null && cd /root/dokku && #{make_cmd}"
+    vm.vm.provision :shell, :inline => "export DEBIAN_FRONTEND=noninteractive && apt-get update >/dev/null && apt-get -qq -y install git >/dev/null && cd /root/dokku && #{make_cmd}"
     vm.vm.provision :shell, :inline => "cd /root/dokku && make dokku-installer"
     vm.vm.provision :shell do |s|
       s.inline = <<-EOT
@@ -66,7 +70,7 @@ Vagrant::configure("2") do |config|
     vm.vm.network :forwarded_port, guest: 80, host: FORWARDED_PORT
     vm.vm.hostname = "#{DOKKU_DOMAIN}"
     vm.vm.network :private_network, ip: DOKKU_IP
-    vm.vm.provision :shell, :inline => "export DEBIAN_FRONTEND=noninteractive && apt-get update > /dev/null && apt-get -qq -y install git dos2unix > /dev/null"
+    vm.vm.provision :shell, :inline => "export DEBIAN_FRONTEND=noninteractive && apt-get update >/dev/null && apt-get -qq -y install git dos2unix >/dev/null"
     vm.vm.provision :shell, :inline => "cd /vagrant/ && export DOKKU_BRANCH=`git symbolic-ref -q --short HEAD 2>/dev/null` && export DOKKU_TAG=`git describe --tags --exact-match 2>/dev/null` && cd /root/ && cp /vagrant/bootstrap.sh ./ && dos2unix bootstrap.sh && bash bootstrap.sh"
   end
 
@@ -92,7 +96,7 @@ Vagrant::configure("2") do |config|
     vm.vm.network :forwarded_port, guest: 80, host: FORWARDED_PORT
     vm.vm.hostname = "#{DOKKU_DOMAIN}"
     vm.vm.network :private_network, ip: DOKKU_IP
-    vm.vm.provision :shell, :inline => "export DEBIAN_FRONTEND=noninteractive && apt-get update > /dev/null && apt-get -qq -y install git > /dev/null && cd /root/dokku && #{make_cmd}"
+    vm.vm.provision :shell, :inline => "export DEBIAN_FRONTEND=noninteractive && apt-get update >/dev/null && apt-get -qq -y install git >/dev/null && cd /root/dokku && #{make_cmd}"
     vm.vm.provision :shell, :inline => "export IS_RELEASE=true && cd /root/dokku && make deb-all rpm-all"
   end
 

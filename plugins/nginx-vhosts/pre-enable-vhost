@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail
+[[ $DOKKU_TRACE ]] && set -x
 source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions"
 source "$PLUGIN_AVAILABLE_PATH/config/functions"
 source "$PLUGIN_AVAILABLE_PATH/proxy/functions"
@@ -9,7 +10,7 @@ nginx_pre_enable_vhost_trigger() {
   local trigger="nginx_pre_enable_vhost_trigger"
   local APP="$1"
   if [[ "$(get_app_proxy_type "$APP")" == "nginx" ]]; then
-    config_unset --no-restart "$APP" DOKKU_PROXY_PORT DOKKU_PROXY_SSL_PORT DOKKU_PROXY_PORT_MAP
+    DOKKU_QUIET_OUTPUT=1 config_unset --no-restart "$APP" DOKKU_PROXY_PORT DOKKU_PROXY_SSL_PORT DOKKU_PROXY_PORT_MAP
   fi
 }
 
